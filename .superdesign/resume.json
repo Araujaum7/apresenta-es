@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "/": {
+      "targetKind": "existing-ui",
+      "projectId": "5dfadb0c-b4a9-4c38-b3f8-32a29f97a0a7",
+      "baselineDraftId": "686c070a-3501-4935-ac4d-fc35ec2ed2ea",
+      "activeDraftId": "e6195778-8494-480d-be2a-e24f973cbc07",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        "src/App.tsx",
+        "src/App.css",
+        "src/index.css"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "8795c7b277c320e0b468d6fec326a1851d440ae0685cce7cec30fc85fd0a4ffe",
+        "src/App.tsx": "4277b805e9bf723bcf379dc2e7537e4ec6e191e0daa6f3d5af8d9f955bc11049",
+        "src/App.css": "24201a855cecc437d87b68816c8d8f0d84399dfee717156770e8a22dbf410e07",
+        "src/index.css": "078aaa00b2caa2e39e221fa42ba4e9b1909b5ea004b64d62590434e4da7acf26"
+      },
+      "components": [],
+      "drafts": {
+        "686c070a-3501-4935-ac4d-fc35ec2ed2ea": {
+          "title": "AJ Slides — Interface Atual",
+          "visualDirection": "reprodução fiel da interface atual",
+          "currentVersion": 1
+        },
+        "a05d08ff-7b18-4717-b4ce-b388efe1c342": {
+          "title": "AJ Slides — Cockpit Financeiro",
+          "visualDirection": "painel operacional compacto de página única",
+          "parentDraftId": "686c070a-3501-4935-ac4d-fc35ec2ed2ea",
+          "currentVersion": 1
+        },
+        "e6195778-8494-480d-be2a-e24f973cbc07": {
+          "title": "AJ Slides — Fluxo Guiado com Inputs Minimalistas",
+          "visualDirection": "preenchimento orientado por quatro etapas com campos discretos e leves",
+          "parentDraftId": "686c070a-3501-4935-ac4d-fc35ec2ed2ea",
+          "currentVersion": 2
+        }
+      },
+      "updatedAt": "2026-09-25T13:15:00-03:00"
+    }
+  }
+}
