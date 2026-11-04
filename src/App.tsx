@@ -46,6 +46,7 @@ const COMPANY_OPTIONS = [
   { value: 'ativa', label: 'Ativa Soluções', accent: '#8b5cf6' },
   { value: 'alpha', label: 'Alpha Equilíbrio', accent: '#3b82f6' },
   { value: 'atitude', label: 'Atitude Soluções', accent: '#64748b' },
+  { value: 'wolf', label: 'WOLF', accent: '#06b6d4' },
 ] as const;
 
 const CONTRACT_OPTIONS = [

@@ -6,7 +6,7 @@ export interface Fee {
 }
 
 export interface FormData {
-  company: 'ativa' | 'alpha' | 'atitude';
+  company: 'ativa' | 'alpha' | 'atitude' | 'wolf';
   type: 'veiculo' | 'imovel' | 'emprestimo';
   imageUrl: string;
   
@@ -97,6 +97,13 @@ export const generateHTML = (data: FormData): string => {
     boxshadowColorRgba = isImovel ? 'rgba(156, 163, 175, 0.15)' : 'rgba(107, 114, 128, 0.15)';
     evolutionCardBgMain = 'rgba(107, 114, 128, 0.1)';
     evolutionCardBgImovel = 'rgba(156, 163, 175, 0.1)';
+  } else if (data.company === 'wolf') {
+    companyLogo = '<span>WOLF</span>';
+    accentColorHex = isImovel ? '#22d3ee' : '#06b6d4'; // Light Blue / Cyan shades
+    shadowColorRgba = isImovel ? 'rgba(34, 211, 238, 0.4)' : 'rgba(6, 182, 212, 0.4)';
+    boxshadowColorRgba = isImovel ? 'rgba(34, 211, 238, 0.15)' : 'rgba(6, 182, 212, 0.15)';
+    evolutionCardBgMain = 'rgba(6, 182, 212, 0.1)';
+    evolutionCardBgImovel = 'rgba(34, 211, 238, 0.1)';
   }
 
   // Evolution HTML logic
@@ -142,6 +149,14 @@ export const generateHTML = (data: FormData): string => {
         : 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?q=80&w=800&auto=format&fit=crop';
   }
 
+  const isWolf = data.company === 'wolf';
+  const bgDarkHex = isWolf ? '#000000' : '#0a0b10';
+  const cardBgHex = isWolf ? '#0a0d12' : '#161824';
+  const cardSurfaceRgba = isWolf ? 'rgba(10, 13, 18, 0.8)' : 'rgba(22, 24, 36, 0.7)';
+  const slideOverlayGradient = isWolf
+    ? 'radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 1) 100%)'
+    : 'radial-gradient(circle at 50% 50%, rgba(10,11,16,0.8) 0%, rgba(10,11,16,1) 100%)';
+
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -151,8 +166,8 @@ export const generateHTML = (data: FormData): string => {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #0a0b10;
-            --card-bg: #161824;
+            --bg-dark: ${bgDarkHex};
+            --card-bg: ${cardBgHex};
             --accent-main: ${accentColorHex}; 
             --accent-red: #ff3366;
             --text-light: #f0f0f5;
@@ -183,7 +198,7 @@ export const generateHTML = (data: FormData): string => {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(10,11,16,0.8) 0%, rgba(10,11,16,1) 100%);
+            background: ${slideOverlayGradient};
             z-index: 1;
         }
         .content-wrapper {
@@ -241,7 +256,7 @@ export const generateHTML = (data: FormData): string => {
             flex: 1;
         }
         .card {
-            background: rgba(22, 24, 36, 0.7);
+            background: ${cardSurfaceRgba};
             border: 1px solid rgba(255,255,255,0.05);
             border-radius: 24px;
             padding: 50px;
