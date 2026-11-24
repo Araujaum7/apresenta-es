@@ -1,6 +1,8 @@
 import {
+  useRef,
   useState,
   type ChangeEvent,
+  type DragEvent,
   type CSSProperties,
   type ReactNode,
 } from 'react';
@@ -12,12 +14,16 @@ import {
   Car,
   CheckCircle2,
   Download,
+  FileText,
   House,
+  Info,
   Image as ImageIcon,
   Plus,
   Trash2,
+  Upload,
 } from 'lucide-react';
 import { type FormData, type Fee, generateHTML } from './template';
+import { lerCalculoTxt } from './importCalculo';
 import './App.css';
 
 const generateId = () => Math.random().toString(36).slice(2, 11);
@@ -54,6 +60,21 @@ const CONTRACT_OPTIONS = [
   { value: 'imovel', label: 'Imóvel', icon: House },
   { value: 'emprestimo', label: 'Empréstimo', icon: Banknote },
 ] as const;
+
+const REFUND_OPTIONS = [
+  {
+    value: 'estorno',
+    label: 'Estorno',
+    hint: 'Devolvido ao cliente: soma no ressarcimento',
+  },
+  {
+    value: 'abatimento',
+    label: 'Abatimento',
+    hint: 'Descontado nas parcelas: não soma',
+  },
+] as const;
+
+type ImportMessage = { ok: boolean; title: string; details: string[] };
 
 const INITIAL_FEE: Fee = {
   id: generateId(),
@@ -117,12 +138,72 @@ function App() {
     totalInstallments: 48,
     correctedInstallmentValue: 0,
     paidDifferenceRefund: 0,
+    refundMode: 'estorno',
     paidInstallments: 0,
     delayedInstallments: 0,
     protocolNumber: '',
     returnDate: '',
     citeCode: '',
   });
+
+  const [importMessage, setImportMessage] = useState<ImportMessage | null>(
+    null,
+  );
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const importCalculo = async (file: File | undefined) => {
+    if (!file) return;
+
+    if (!/\.txt$/i.test(file.name) && file.type !== 'text/plain') {
+      setImportMessage({
+        ok: false,
+        title: 'Arquivo não suportado',
+        details: ['Selecione o .txt baixado na Calculadora de Revisão.'],
+      });
+      return;
+    }
+
+    const texto = await file.text();
+    const { dados, avisos } = lerCalculoTxt(texto, generateId);
+
+    setFormData((previousData) => ({
+      // mantém empresa, imagem e dados de acompanhamento; zera o resto
+      ...previousData,
+      clientName: '',
+      cpf: '',
+      contractNumber: '',
+      institution: '',
+      vehicle: '',
+      financedValue: 0,
+      currentInstallmentValue: 0,
+      correctedInstallmentValue: 0,
+      paidDifferenceRefund: 0,
+      paidInstallments: 0,
+      delayedInstallments: 0,
+      fees: [{ ...INITIAL_FEE, id: generateId() }],
+      ...dados,
+    }));
+
+    setImportMessage({
+      ok: avisos.length === 0,
+      title: dados.clientName
+        ? `Cálculo de ${dados.clientName} importado`
+        : `Arquivo ${file.name} importado`,
+      details: avisos,
+    });
+  };
+
+  const handleFileInput = (event: ChangeEvent<HTMLInputElement>) => {
+    void importCalculo(event.target.files?.[0]);
+    event.target.value = '';
+  };
+
+  const handleDrop = (event: DragEvent<HTMLElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    void importCalculo(event.dataTransfer.files?.[0]);
+  };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = event.target;
@@ -205,7 +286,14 @@ function App() {
   const installmentReduction =
     formData.currentInstallmentValue - formData.correctedInstallmentValue;
   const contractReduction = installmentReduction * formData.totalInstallments;
-  const totalRefund = totalFees + formData.paidDifferenceRefund;
+  const isAbatimento = formData.refundMode === 'abatimento';
+  const totalRefund =
+    totalFees + (isAbatimento ? 0 : formData.paidDifferenceRefund);
+  const suggestedPaidDifference =
+    Math.round(installmentReduction * formData.paidInstallments * 100) / 100;
+  const paidDifferenceLabel = isAbatimento
+    ? 'Abatimento nas parcelas'
+    : 'Estorno da diferença paga';
 
   const assetTitle =
     formData.type === 'imovel'
@@ -246,6 +334,61 @@ function App() {
       <main className="page-content">
         <div className="workspace-grid">
           <div className="workflow-column">
+            <section
+              className={`surface-card import-card${isDragging ? ' is-dragging' : ''}`}
+              aria-label="Importar cálculo"
+              onDragOver={(event) => {
+                event.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+            >
+              <span className="import-icon" aria-hidden="true">
+                <FileText size={22} />
+              </span>
+              <div className="import-text">
+                <h2>Importar cálculo</h2>
+                <p>
+                  Arraste aqui o .txt baixado na Calculadora de Revisão, ou
+                  selecione o arquivo. Os campos são preenchidos sozinhos.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="import-button"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload size={17} aria-hidden="true" />
+                Selecionar .txt
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".txt,text/plain"
+                hidden
+                onChange={handleFileInput}
+              />
+              {importMessage && (
+                <div
+                  className={`import-message${importMessage.ok ? '' : ' is-warning'}`}
+                  role="status"
+                >
+                  {importMessage.ok ? (
+                    <CheckCircle2 size={17} aria-hidden="true" />
+                  ) : (
+                    <Info size={17} aria-hidden="true" />
+                  )}
+                  <div>
+                    <strong>{importMessage.title}</strong>
+                    {importMessage.details.map((detail) => (
+                      <span key={detail}>{detail}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+
             <section className="context-grid" aria-label="Contexto da apresentação">
               <div className="surface-card context-card">
                 <div className="card-heading">
@@ -579,13 +722,40 @@ function App() {
             <section className="surface-card step-card">
               <StepHeader
                 step={4}
-                title="Estorno e acompanhamento"
-                description="Dados complementares para finalização e pós-venda."
+                title="Estorno / abatimento e acompanhamento"
+                description="Como a diferença das parcelas pagas volta ao cliente."
               />
+
+              <div className="refund-options" role="group" aria-label="Estorno ou abatimento">
+                {REFUND_OPTIONS.map((option) => {
+                  const isSelected = formData.refundMode === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`refund-option${isSelected ? ' is-selected' : ''}`}
+                      aria-pressed={isSelected}
+                      onClick={() =>
+                        setFormData((previousData) => ({
+                          ...previousData,
+                          refundMode: option.value,
+                        }))
+                      }
+                    >
+                      <span className="refund-radio" aria-hidden="true" />
+                      <span>
+                        <strong>{option.label}</strong>
+                        <small>{option.hint}</small>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
 
               <div className="form-grid">
                 <Field
-                  label="Estorno da diferença paga"
+                  label={paidDifferenceLabel}
                   optional="(Se houver)"
                   wide
                 >
@@ -603,6 +773,23 @@ function App() {
                       placeholder="0,00"
                     />
                   </div>
+                  {suggestedPaidDifference > 0 &&
+                    suggestedPaidDifference !==
+                      formData.paidDifferenceRefund && (
+                      <button
+                        type="button"
+                        className="calc-link"
+                        onClick={() =>
+                          setFormData((previousData) => ({
+                            ...previousData,
+                            paidDifferenceRefund: suggestedPaidDifference,
+                          }))
+                        }
+                      >
+                        Usar {formatBRL(suggestedPaidDifference)} (redução ×{' '}
+                        {formData.paidInstallments} parcelas pagas)
+                      </button>
+                    )}
                 </Field>
                 <Field label="Protocolo registrado">
                   <input
@@ -651,8 +838,12 @@ function App() {
                   <dd>{formatBRL(totalFees)}</dd>
                 </div>
                 <div>
-                  <dt>Estorno de diferença</dt>
-                  <dd>{formatBRL(formData.paidDifferenceRefund)}</dd>
+                  <dt>
+                    {isAbatimento ? 'Abatimento (não soma)' : 'Estorno (soma)'}
+                  </dt>
+                  <dd className={isAbatimento ? 'muted-value' : undefined}>
+                    {formatBRL(formData.paidDifferenceRefund)}
+                  </dd>
                 </div>
                 <div>
                   <dt>Redução por parcela</dt>

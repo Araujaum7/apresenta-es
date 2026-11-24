@@ -25,6 +25,8 @@ export interface FormData {
   correctedInstallmentValue: number;
   
   paidDifferenceRefund: number;
+  /** estorno = devolvido ao cliente (soma no ressarcimento); abatimento = descontado nas parcelas (não soma) */
+  refundMode: 'estorno' | 'abatimento';
   
   paidInstallments: number;
   delayedInstallments: number;
@@ -47,7 +49,19 @@ export const generateHTML = (data: FormData): string => {
   const correctedTotal = data.correctedInstallmentValue * data.totalInstallments;
   const installmentReduction = data.currentInstallmentValue - data.correctedInstallmentValue;
   const contractReduction = currentTotal - correctedTotal;
-  const totalRefund = totalFees + data.paidDifferenceRefund;
+  const isAbatimento = data.refundMode === 'abatimento';
+  const totalRefund = totalFees + (isAbatimento ? 0 : data.paidDifferenceRefund);
+  const reductionPct = data.currentInstallmentValue > 0
+    ? Math.round((installmentReduction / data.currentInstallmentValue) * 100)
+    : 0;
+  const paidDiffLabel = isAbatimento ? 'Abatimento nas Parcelas' : 'Estorno das Parcelas Pagas';
+  const paidDiffTag = isAbatimento ? 'DESCONTADO NAS PRÓXIMAS PARCELAS' : 'DEVOLVIDO AO CLIENTE';
+  const paidDiffDesc = isAbatimento
+    ? `A diferença das ${data.paidInstallments} parcelas já pagas será abatida diretamente nas próximas parcelas.`
+    : `Diferença cobrada a mais nas ${data.paidInstallments} parcelas já pagas, devolvida ao cliente.`;
+  const refundCompositionText = isAbatimento
+    ? 'Taxas indevidas a devolver (a diferença das parcelas pagas é abatida nas próximas parcelas)'
+    : 'Taxas indevidas + estorno da diferença das parcelas pagas';
   
   const progressPercentage = data.totalInstallments > 0 
     ? ((data.paidInstallments / data.totalInstallments) * 100).toFixed(1) 
@@ -132,9 +146,9 @@ export const generateHTML = (data: FormData): string => {
   const valueLabel = isImovel ? 'Valor Base Financiado' : isEmprestimo ? 'Valor do Empréstimo' : 'Valor Financiado';
   
   const slide5Title = isImovel ? 'Projeção e Desconto Global' : 'Projeção e Desconto por Parcela';
-  const slide5DiscountLabel = isImovel ? 'Abatimento Total no Contrato' : 'Redução por Parcela';
+  const slide5DiscountLabel = isImovel ? 'Redução Total no Contrato' : 'Redução por Parcela';
   const slide5DiscountValue = isImovel ? `- ${formatCurrency(contractReduction)}` : `~ ${formatCurrency(installmentReduction)}`;
-  const slide5Pill = isImovel ? '30% DE DESCONTO GLOBAL' : '30% DE DESCONTO';
+  const slide5Pill = isImovel ? `${reductionPct}% DE DESCONTO GLOBAL` : `${reductionPct}% DE DESCONTO`;
   
   const slide7Title = isImovel ? 'Evolução do Contrato (Longo Prazo)' : 'Evolução do Contrato';
 
@@ -326,6 +340,92 @@ export const generateHTML = (data: FormData): string => {
             background-color: #fff;
             box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
         }
+        /* SLIDE 6 — destaque dos valores */
+        .result-hero {
+            position: relative;
+            text-align: center;
+            padding: 56px 60px 60px;
+            border-radius: 32px;
+            background:
+                radial-gradient(900px 320px at 50% 0%, ${boxshadowColorRgba.replace('0.15', '0.35')}, transparent 70%),
+                rgba(10, 11, 16, 0.88);
+            border: 2px solid var(--accent-main);
+            box-shadow: 0 0 120px ${boxshadowColorRgba}, inset 0 1px 0 rgba(255,255,255,0.08);
+            overflow: hidden;
+        }
+        .result-kicker {
+            display: inline-block;
+            padding: 10px 28px;
+            border-radius: 50px;
+            background: var(--accent-main);
+            color: #fff;
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: 3px;
+        }
+        .result-hero .huge-number {
+            font-size: 170px;
+            letter-spacing: -4px;
+            margin: 26px 0 14px;
+            color: #fff;
+            text-shadow: 0 0 60px ${shadowColorRgba}, 0 0 4px rgba(255,255,255,0.4);
+        }
+        .result-hero p { color: var(--text-dim); font-size: 26px; margin: 8px 0 0; }
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+            flex: 1;
+        }
+        .result-card {
+            position: relative;
+            padding: 44px 48px;
+            border-radius: 28px;
+            background: rgba(10, 11, 16, 0.85);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-left: 10px solid var(--accent-main);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .result-card.is-abatimento { border-left-color: #f59e0b; }
+        .result-card.is-abatimento .result-value { color: #fbbf24; text-shadow: 0 0 40px rgba(245, 158, 11, 0.35); }
+        .result-card.is-abatimento .result-tag { color: #fbbf24; border-color: rgba(251, 191, 36, 0.5); background: rgba(245, 158, 11, 0.12); }
+        .result-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 30px;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .result-tag {
+            display: inline-block;
+            align-self: flex-start;
+            margin-top: 14px;
+            padding: 7px 18px;
+            border-radius: 50px;
+            border: 1px solid ${shadowColorRgba};
+            background: ${boxshadowColorRgba};
+            color: var(--accent-main);
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+        }
+        .result-value {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 96px;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -2px;
+            margin: 26px 0 18px;
+            color: var(--accent-main);
+            text-shadow: 0 0 40px ${shadowColorRgba};
+            white-space: nowrap;
+        }
+        .result-desc { font-size: 23px; color: var(--text-dim); margin: 0; line-height: 1.45; }
+        .result-desc strong { color: #fff; }
         .finance-bg {
             background: url('https://images.unsplash.com/photo-1640340434855-6084b1f4901c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover;
         }
@@ -442,24 +542,30 @@ export const generateHTML = (data: FormData): string => {
 
     <!-- SLIDE 6: DESTAQUE FINANCEIRO (HERO) -->
     <div class="slide finance-bg">
-        <div class="content-wrapper flex-center" style="text-align: center;">
-            <div class="logo-placeholder" style="position: absolute; top: 0; right: 0;">${companyLogo}</div>
-            <div class="card" style="background: rgba(10, 11, 16, 0.85); width: 100%; max-width: 1400px; padding: 80px; border: 1px solid var(--accent-main); box-shadow: 0 0 80px ${boxshadowColorRgba};">
-                <h2 class="subtitle">Valores a Receber e Economizar</h2>
-                
-                <h3 style="font-size: 40px; color: #fff; margin-top: 40px;">RESSARCIMENTO GERAL</h3>
-                <p style="color: var(--text-dim); font-size: 20px;">(Taxas indevidas + Diferença das parcelas pagas)</p>
+        <div class="content-wrapper">
+            <div class="slide-header" style="margin-bottom: 40px;">
+                <h2 class="slide-title">Resultado da Revisão</h2>
+                <div class="logo-placeholder">${companyLogo}</div>
+            </div>
+
+            <div class="result-hero">
+                <div class="result-kicker">RESSARCIMENTO GERAL</div>
                 <div class="huge-number">${formatCurrency(totalRefund)}${citeStr}</div>
-                
-                <div class="grid-2" style="margin-top: 60px; gap: 40px;">
-                    <div style="border-right: 1px solid rgba(255,255,255,0.1); padding-right: 40px;">
-                        <div class="data-label">Estorno da Diferença Paga</div>
-                        <div class="data-value main" style="font-size: 50px;">${formatCurrency(data.paidDifferenceRefund)}</div>
-                    </div>
-                    <div style="padding-left: 40px;">
-                        <div class="data-label">Redução Total do Contrato</div>
-                        <div class="data-value main" style="font-size: 50px;">${formatCurrency(contractReduction)}${citeStr}</div>
-                    </div>
+                <p>${refundCompositionText}</p>
+            </div>
+
+            <div class="result-grid">
+                <div class="result-card${isAbatimento ? ' is-abatimento' : ''}">
+                    <div class="result-label">${paidDiffLabel}</div>
+                    <div class="result-tag">${paidDiffTag}</div>
+                    <div class="result-value">${formatCurrency(data.paidDifferenceRefund)}</div>
+                    <p class="result-desc">${paidDiffDesc}</p>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Redução Total do Contrato</div>
+                    <div class="result-tag">ECONOMIA ATÉ O FIM DO CONTRATO</div>
+                    <div class="result-value">${formatCurrency(contractReduction)}${citeStr}</div>
+                    <p class="result-desc"><strong>${formatCurrency(installmentReduction)}</strong> a menos por parcela × <strong>${data.totalInstallments}</strong> parcelas (${reductionPct}% de redução).</p>
                 </div>
             </div>
         </div>

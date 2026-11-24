@@ -776,3 +776,197 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- Importar cálculo (.txt) ---------- */
+.import-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 22px;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--company-accent) 45%, var(--border-primary));
+  background: color-mix(in srgb, var(--company-accent) 5%, var(--surface-primary));
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.import-card.is-dragging {
+  border-color: var(--company-accent);
+  background: color-mix(in srgb, var(--company-accent) 14%, var(--surface-primary));
+}
+
+.import-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  color: var(--company-accent);
+  background: color-mix(in srgb, var(--company-accent) 14%, transparent);
+  border-radius: 13px;
+}
+
+.import-text h2 {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.import-text p {
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.import-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  color: #fff;
+  background: var(--company-accent);
+  border: 0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter 180ms ease, transform 180ms ease;
+}
+
+.import-button:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.import-message {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  padding: 11px 14px;
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--company-accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--company-accent) 35%, transparent);
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.import-message svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--company-accent);
+}
+
+.import-message.is-warning {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.import-message.is-warning svg {
+  color: var(--warning);
+}
+
+.import-message strong,
+.import-message span {
+  display: block;
+}
+
+.import-message span {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 640px) {
+  .import-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .import-button {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+}
+
+/* ---------- Estorno / abatimento ---------- */
+.refund-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.refund-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 14px;
+  color: var(--text-secondary);
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+
+.refund-option:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.refund-option strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.refund-option small {
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.refund-radio {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+}
+
+.refund-option.is-selected {
+  background: color-mix(in srgb, var(--company-accent) 9%, transparent);
+  border-color: var(--company-accent);
+}
+
+.refund-option.is-selected .refund-radio {
+  border: 5px solid var(--company-accent);
+}
+
+.calc-link {
+  margin-top: 8px;
+  padding: 0;
+  color: var(--company-accent);
+  background: none;
+  border: 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.calc-link:hover {
+  text-decoration: underline;
+}
+
+.summary-list dd.muted-value {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+@media (max-width: 520px) {
+  .refund-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
